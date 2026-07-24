@@ -54,6 +54,7 @@ erDiagram
         int user_id FK
         int topic_id FK
         text figma_url
+        text thumbnail_url
         int total_score
         text ai_feedback
         string status
@@ -98,6 +99,7 @@ erDiagram
 | `user_id` | INT | NOT NULL, FOREIGN KEY (`users.user_id`) | 提出者のユーザーID |
 | `topic_id` | INT | NOT NULL, FOREIGN KEY (`topics.topic_id`) | 挑戦したお題のID |
 | `figma_url` | TEXT | NOT NULL | 提出されたFigma共有URL |
+| `thumbnail_url` | TEXT | DEFAULT NULL | Figma APIより自動取得した作品サムネイルURL |
 | `total_score` | INT | NOT NULL | 模擬AI算出スコア（75〜95） |
 | `ai_feedback` | TEXT | NOT NULL | 模擬AI生成フィードバック本文 |
 | `status` | VARCHAR(20) | DEFAULT 'submitted' | 状態（`submitted` 等） |
@@ -134,16 +136,18 @@ flowchart TD
 * 送信された `$_POST['csrf_token']` と `$_SESSION['csrf_token']` を `hash_equals()` 関数で比較・判定。
 * 不一致の場合は即座に処理を中断し、エラー応答を返す（CSRF遮断）。
 
+3. **Figma API連携処理（`helpers.php - fetch_figma_thumbnail()` ）：**
+* figma_url より fileKey を正規表現抽出。https://api.figma.com/v1/files/{fileKey} へcURL通信（X-Figma-Token 付与）し、`thumbnailUrl` を返却。
 
-3. **PRG（Post-Redirect-Get）パターンの適用：**
+4. **PRG（Post-Redirect-Get）パターンの適用：**
 * 提出処理完了後、ブラウザの「再読み込みによる二重投稿（F5アタック）」を防ぐため、`header('Location: mypage.php'); exit;` によりGETリクエストへリダイレクトさせて画面遷移を完結させる。
 
-4. **お題動的生成アルゴリズム (`index.php`)**:
+5. **お題動的生成アルゴリズム (`index.php`)**:
    * 実務に即した具体的デザインパーツ（飲食トップページ、ポートフォリオヘッダー、LPヒーロー等）をパラメータ（`GET['generate']`）に基づき即座に再生成・提供。
-5. **AI評価出力フォーマットの構造化**:
+6. **AI評価出力フォーマットの構造化**:
    * 【視認性・余白】【タイポグラフィ】【CVR・導線視点】【コンポーネント設計】等の明確なカテゴリタグを付与し、数値指定（例：44×44px、24px等の具体的ピクセル数）を含む改善アクション文面を動的生成。
 
-6. **URL決定論的ハッシュおよび連続評価ロジック**:
+7. **URL決定論的ハッシュおよび連続評価ロジック**:
    * `crc32($figmaUrl . '_' . $persona)` を用いて同一URL・同一ペルソナ時のベーススコア固定化と再現性を担保。
    * `SELECT * FROM submissions WHERE user_id = :user_id AND figma_url = :figma_url` により前回提出レコードを取得。履歴存在時は前回の `total_score` をベースとした改善加点および前線比較文章（【前回からの改善度の判定】/【再提出による効果検証】等）を出力。
 
@@ -199,6 +203,20 @@ desatre/
 | `mypage.php` | `.app-header`, `.container`, `.card` (スタッツ用Flex配置), `table`, `.score-badge` |
 | `login.php` | `.container` (幅420px中央寄せ), `.form-group`, `input[type="email"]`, `input[type="password"]` |
 | `register.php` | `.container` (幅420px中央寄せ), `.form-group`, エラー時メッセージボックス（赤透過背景） |
+
+
+### 4.3 Figma API 連携仕様
+- **エンドポイント**: `https://api.figma.com/v1/files/{file_key}`
+- **認証方式**: リクエストヘッダー `X-Figma-Token: {FIGMA_PERSONAL_ACCESS_TOKEN}`
+- **処理フロー**:
+  1. `figma_url` から正規表現 `/\/file\/([a-zA-Z0-9]+)/` または `/\/design\/([a-zA-Z0-9]+)/` で `file_key` を抽出。
+  2. Figma REST APIへGETリクエストを送信し、`thumbnailUrl` を取得。
+  3. 取得した画像URLを DBの `thumbnail_url` に格納。
+  4. トークン無効または通信エラー時は `null` をセットし、フロントエンド側でデフォルト画像を表示。
+
+
+
+
 ---
 
 

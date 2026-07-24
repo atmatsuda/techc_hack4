@@ -49,3 +49,50 @@ function require_login(): void {
         exit;
     }
 }
+
+/**
+ * Figma URLからファイルキーを抽出し、Figma APIからサムネイル画像URLを取得する
+ * 
+ * @param string $figmaUrl
+ * @return string|null
+ */
+/**
+ * Figma URLからファイルキーを抽出し、Figma APIからサムネイル画像URLを取得する
+ */
+function fetch_figma_thumbnail($figmaUrl) {
+    $figmaToken = defined('FIGMA_ACCESS_TOKEN') ? FIGMA_ACCESS_TOKEN : '';
+    
+    if (empty($figmaToken)) {
+        return null;
+    }
+
+    // design や file など、Figmaの各種URL形式からキーを抽出
+    if (!preg_match('/figma\.com\/(?:file|design|proto)\/([a-zA-Z0-9]+)/', $figmaUrl, $matches)) {
+        return null;
+    }
+
+    $fileKey = $matches[1];
+    $apiUrl = "https://api.figma.com/v1/files/{$fileKey}?depth=1";
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $apiUrl,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 5,
+        CURLOPT_SSL_VERIFYPEER => false, // ローカル開発環境でのSSLエラー回避
+        CURLOPT_HTTPHEADER => [
+            "X-Figma-Token: {$figmaToken}"
+        ]
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode === 200 && $response) {
+        $data = json_decode($response, true);
+        return $data['thumbnailUrl'] ?? null;
+    }
+
+    return null;
+}

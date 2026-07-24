@@ -20,3 +20,6 @@ try {
     // ユーザーには汎用エラーメッセージのみ表示
     die('システムエラーが発生しました。時間を置いて再度お試しください。');
 }
+
+// Figma Personal Access Token
+define('FIGMA_ACCESS_TOKEN', 'figd_q1xaRU1BrBVNJNv7x6aCKAFSbmP6S98GqxpgfIQd');

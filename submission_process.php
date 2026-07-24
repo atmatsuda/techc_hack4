@@ -42,7 +42,6 @@ try {
 // --------------------------------------------------
 // 2. URLに基づく決定論的ハッシュ値の生成（URL固定スコア用）
 // --------------------------------------------------
-// URL文字列から一意の数値を生成し、同じURLなら毎回同じ決定論的スコアを算出
 $urlHash = crc32($figmaUrl . '_' . $persona);
 $baseScoreMap = [
     'demon'    => 55 + (abs($urlHash) % 20), // 55〜74点
@@ -60,7 +59,6 @@ $totalScore = $baseScore;
 if ($prevSubmission) {
     // 【再提出パターン】前回からの変化・改善点の評価
     $prevScore = (int)$prevSubmission['total_score'];
-    // 再提出時は前回の指摘改善により＋3〜8点のスコアアップ
     $totalScore = min(100, $prevScore + 5);
 
     if ($persona === 'demon') {
@@ -83,41 +81,31 @@ if ($prevSubmission) {
 }
 
 // --------------------------------------------------
-// 4. DBへのデータ保存（DB構造柔軟対応）
+// 4. DBへのデータ保存（サムネイルURL取得機能付き）
 // --------------------------------------------------
+$thumbnailUrl = fetch_figma_thumbnail($figmaUrl);
+
 try {
-    // topic_id の存在チェック（存在しないIDの場合は1を補正）
     $topicCheck = $pdo->prepare('SELECT topic_id FROM topics WHERE topic_id = :id');
     $topicCheck->execute([':id' => $topicId]);
     if (!$topicCheck->fetch()) {
         $topicId = 1;
     }
 
-    try {
-        $stmt = $pdo->prepare('INSERT INTO submissions (user_id, topic_id, figma_url, persona, total_score, ai_feedback) VALUES (:user_id, :topic_id, :figma_url, :persona, :total_score, :ai_feedback)');
-        $stmt->execute([
-            ':user_id'     => $userId,
-            ':topic_id'    => $topicId,
-            ':figma_url'   => $figmaUrl,
-            ':persona'     => $persona,
-            ':total_score' => $totalScore,
-            ':ai_feedback' => $aiFeedback,
-        ]);
-    } catch (PDOException $e) {
-        // persona カラムがない旧DBテーブル構造用フォールバック
-        $stmt = $pdo->prepare('INSERT INTO submissions (user_id, topic_id, figma_url, total_score, ai_feedback) VALUES (:user_id, :topic_id, :figma_url, :total_score, :ai_feedback)');
-        $stmt->execute([
-            ':user_id'     => $userId,
-            ':topic_id'    => $topicId,
-            ':figma_url'   => $figmaUrl,
-            ':total_score' => $totalScore,
-            ':ai_feedback' => $aiFeedback,
-        ]);
-    }
+    $stmt = $pdo->prepare('INSERT INTO submissions (user_id, topic_id, figma_url, thumbnail_url, persona, total_score, ai_feedback) VALUES (:user_id, :topic_id, :figma_url, :thumbnail_url, :persona, :total_score, :ai_feedback)');
+    $stmt->execute([
+        ':user_id'       => $userId,
+        ':topic_id'      => $topicId,
+        ':figma_url'     => $figmaUrl,
+        ':thumbnail_url' => $thumbnailUrl,
+        ':persona'       => $persona,
+        ':total_score'   => $totalScore,
+        ':ai_feedback'   => $aiFeedback,
+    ]);
 
     header('Location: mypage.php');
     exit;
 } catch (PDOException $e) {
     error_log('Submission Error: ' . $e->getMessage());
-    die('データベース処理中にエラーが発生しました: ' . $e->getMessage());
+    die('データベース処理中にエラーが発生しました。時間を置いて再度お試しください。');
 }

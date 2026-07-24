@@ -55,6 +55,26 @@ try {
             </div>
         </div>
 
+
+        <?php foreach ($submissions as $submission): ?>
+    <div class="card">
+        
+        <!-- 🔽 ここから追加：サムネイル画像の表示処理 🔽 -->
+        <?php if (!empty($submission['thumbnail_url'])): ?>
+            <div class="thumbnail-box" style="margin-bottom: 15px; text-align: center;">
+                <img src="<?= htmlspecialchars($submission['thumbnail_url'], ENT_QUOTES, 'UTF-8') ?>" 
+                     alt="Figma Thumbnail" 
+                     style="width: 100%; max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #ddd;">
+            </div>
+        <?php endif; ?>
+        <!-- 🔼 ここまで追加 🔼 -->
+
+        <h3>スコア: <?= $submission['total_score'] ?>点</h3>
+        <p>Figma: <a href="<?= htmlspecialchars($submission['figma_url']) ?>" target="_blank">リンク</a></p>
+        <p><?= nl2br(htmlspecialchars($submission['ai_feedback'])) ?></p>
+    </div>
+<?php endforeach; ?>
+
         <h2>提出履歴</h2>
         <?php if (empty($submissions)): ?>
             <p style="color: var(--text-muted);">まだ提出した課題はありません。</p>
