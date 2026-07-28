@@ -345,6 +345,25 @@ WHERE user_id = :user_id
 * [ ] **Session:** `login.php` の認証成功時に `session_regenerate_id(true)` を呼んでいるか。
 * [ ] **Error Leak:** DB処理の `catch(PDOException $e)` 内で `$e->getMessage()` を `echo` していないか（`error_log()` に書いているか）。
 
+
+
+---
+### 【実装補足：Figma OAuth & API サムネイル自動取得処理】
+
+```php
+// Figma API サムネイル取得処理関数（helpers.php等へ追記）
+function fetch_figma_thumbnail(string $figmaUrl, string$accessToken): ?string {
+    if (!preg_match('/(?:file|design)\/([a-zA-Z0-9]+)/', $figmaUrl, $matches)) {         return null;     }$fileKey = $matches[1];$ch = curl_init("[https://api.figma.com/v1/files/](https://api.figma.com/v1/files/){$fileKey}");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ["X-Figma-Token: {$accessToken}"]);
+    $res = curl_exec($ch);
+    curl_close($ch);
+    $data = json_decode($res, true);
+    return $data['thumbnailUrl'] ?? null;
+}
+
+
+
 ---
 
 セキュア実装手順書の作成が完了しました。この手順書をコピーして、ローカルに『05_implement_guide.md』というファイル名で保存してください。保存できたら、このチャットを閉じ、実装用の新規チャット『スレッドB2（開発支援）』を立ち上げてVSCodeでの開発を開始しましょう！

@@ -46,6 +46,17 @@ try {
             <div class="card-grid">
                 <?php foreach ($submissions as $sub): ?>
                     <div class="card">
+                        <!-- サムネイル画像表示エリア -->
+                        <?php if (!empty($sub['thumbnail_url'])): ?>
+                            <div style="margin-bottom: 15px; overflow: hidden; border-radius: 8px; max-height: 180px;">
+                                <img src="<?php echo h($sub['thumbnail_url']); ?>" alt="Figma プレビュー" style="width: 100%; object-fit: cover; display: block;">
+                            </div>
+                        <?php else: ?>
+                            <div style="margin-bottom: 15px; background: rgba(255,255,255,0.05); height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 13px;">
+                                🖼️ Figma Preview Unavailable
+                            </div>
+                        <?php endif; ?>
+
                         <h3><?php echo h($sub['topic_title']); ?></h3>
                         <p style="color: var(--text-muted); font-size: 14px;">制作者: <?php echo h($sub['display_name']); ?></p>
                         <p><span class="score-badge">AIスコア: <?php echo h($sub['total_score']); ?>点</span></p>
@@ -61,21 +72,5 @@ try {
             </div>
         <?php endif; ?>
     </div>
-
-<!-- ギャラリーカード内での画像表示 -->
-<div class="card">
-    <?php if (!empty($sub['thumbnail_url'])): ?>
-        <div style="margin-bottom: 15px; overflow: hidden; border-radius: 8px; max-height: 180px;">
-            <img src="<?php echo h($sub['thumbnail_url']); ?>" alt="Figma プレビュー" style="width: 100%; object-fit: cover; display: block;">
-        </div>
-    <?php else: ?>
-        <div style="margin-bottom: 15px; background: rgba(255,255,255,0.05); height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 13px;">
-            🖼️ Figma Preview Unavailable
-        </div>
-    <?php endif; ?>
-
-    <h3><?php echo h($sub['topic_title']); ?></h3>
-    ...
-
 </body>
 </html>

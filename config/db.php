@@ -23,3 +23,9 @@ try {
 
 // Figma Personal Access Token
 define('FIGMA_ACCESS_TOKEN', 'figd_q1xaRU1BrBVNJNv7x6aCKAFSbmP6S98GqxpgfIQd');
+// config/db.php に追記
+
+// Figma OAuth 設定
+define('FIGMA_CLIENT_ID', 'maXwbPwEMEHNT8JDgIIP0O');
+define('FIGMA_CLIENT_SECRET', 'NlT67c4bFVKoUJgQVWHhSJiccSZqqE7GJFn5eATU');
+define('FIGMA_REDIRECT_URI', 'http://localhost/techc_hack4-feature-first-setup/figma_callback.php');

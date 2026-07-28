@@ -51,15 +51,12 @@ function require_login(): void {
 }
 
 /**
- * Figma URLからファイルキーを抽出し、Figma APIからサムネイル画像URLを取得する
+ * 5. Figma URLからファイルキーを抽出し、Figma APIからサムネイル画像URLを取得する
  * 
  * @param string $figmaUrl
  * @return string|null
  */
-/**
- * Figma URLからファイルキーを抽出し、Figma APIからサムネイル画像URLを取得する
- */
-function fetch_figma_thumbnail($figmaUrl) {
+function fetch_figma_thumbnail(string $figmaUrl): ?string {
     $figmaToken = defined('FIGMA_ACCESS_TOKEN') ? FIGMA_ACCESS_TOKEN : '';
     
     if (empty($figmaToken)) {

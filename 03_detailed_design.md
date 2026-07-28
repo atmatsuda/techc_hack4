@@ -254,9 +254,18 @@ desatre/
 * 自分の提出データやプロフィールを更新・参照する処理では、リクエストされたデータの所有者キー（`submissions.user_id`）と現在ログイン中の `$_SESSION['user_id']` が一致しているかをサーバー側で厳密に検証。
 
 
+---
+### 【詳細設計の追加仕様：Figma API / OAuth連携およびDB拡張】
 
+#### 1. テーブル拡張
+- **`users` テーブル：** `figma_access_token` (TEXT, NULL可) を追加。
+- **`submissions` テーブル：** `thumbnail_url` (TEXT, NULL可) を追加。
+
+#### 2. Figma API 通信仕様
+- **OAuth トークン取得：** `POST https://api.figma.com/v1/oauth/token`
+- **サムネイル取得：** `GET https://api.figma.com/v1/files/{file_key}`（ヘッダー：`X-Figma-Token: {access_token}`）
+- **フォールバック設計：** 連携未完了時やAPI一時エラー時もシステムが停止せず、基本機能が動作する安全設計を維持。
 
 
 ---
 
-詳細設計書の出力が完了しました。この内容をコピーして、ローカルに『03_detailed_design.md』というファイル名でVSCode等に保存してください。
